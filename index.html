@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Signature BIEN</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            height: 100vh;
+        }
+        h2 {
+            margin-bottom: 20px;
+        }
+        .container {
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+        }
+        .signature-pad {
+            border: 2px solid #000;
+            background-color: #fff;
+            width: 800px; /* Taille d'affichage */
+            height: 400px; /* Taille d'affichage */
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+        #cursor {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: black;
+            border-radius: 50%;
+            pointer-events: none;
+        }
+        .controls {
+            display: flex;
+            flex-direction: column;
+            margin-left: 20px;
+        }
+        .controls input, .controls button, .controls select {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .controls input {
+            border: 1px solid #ccc;
+        }
+        .controls button {
+            background-color: rgb(39, 4, 47);
+            color: #fff;
+        }
+        .controls button:hover {
+            background-color: rgb(179, 0, 81);
+        }
+        .controls select {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <h2>BIEN Signature</h2>
+    <canvas id="signature-pad" class="signature-pad" width="1600" height="800"></canvas> <!-- Taille réelle -->
+    <div id="cursor"></div>
+    <div class="controls">
+        <input type="text" id="filename" placeholder="Nom du fichier">
+        <input type="color" id="color-picker" value="#000000" title="Couleur" name="color">
+        <select id="style-picker">
+            <option value="normal">Normal</option>
+            <option value="bold">Bold</option>
+            <option value="italic">Italic</option>
+            <option value="bold italic">Bold Italic</option>
+        </select>
+        <select id="format-picker">
+            <option value="png">PNG</option>
+            <option value="jpeg">JPEG</option>
+            <option value="bmp">BMP</option>
+        </select>
+        <button id="clear-button">Effacer</button>
+        <button id="eraser-button">Activer la gomme</button>
+        <button id="save-button">Enregistrer</button>
+        <button id="increase-thickness">Augmenter l'épaisseur</button>
+        <button id="decrease-thickness">Diminuer l'épaisseur</button>
+        <button id="download-button">Télécharger la signature</button>
+        <button id="generate-button">Générer</button>
+        <button id="another-model-button">Voir un autre modèle</button>
+        <span id="thickness-indicator">Épaisseur : 5</span>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
+    <script>
+        const canvas = document.getElementById('signature-pad');
+        const ctx = canvas.getContext('2d');
+        ctx.lineWidth = 5; // Épaisseur de la ligne
+        ctx.strokeStyle = '#000000'; // Couleur de la ligne (noir)
+        const cursor = document.getElementById('cursor');
+        let drawing = false;
+        let nom = '';
+        let prenom = '';
+        let currentStyle = 'normal';
+        let erasing = false;
+        let eraserSize = 10;
+
+        document.getElementById('eraser-button').addEventListener('click', () => {
+            erasing = !erasing; // Bascule entre gomme et pinceau
+            if (erasing) {
+                ctx.globalCompositeOperation = 'destination-out'; // Mode gomme
+                ctx.lineWidth = eraserSize; // Applique la taille de la gomme
+                document.getElementById('eraser-button').textContent = 'Désactiver la gomme';
+            } else {
+                ctx.globalCompositeOperation = 'source-over'; // Mode dessin
+                ctx.lineWidth = 5; // Réinitialise à l'épaisseur par défaut
+                document.getElementById('eraser-button').textContent = 'Activer la gomme';
+            }
+            updateThicknessIndicator(); // Mettez à jour l'indicateur
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            cursor.style.left = `${e.pageX - 5}px`;
+            cursor.style.top = `${e.pageY - 5}px`;
+            if (drawing) {
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Adjust for actual size
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        const thicknessIndicator = document.getElementById('thickness-indicator');
+
+        function updateThicknessIndicator() {
+            if (erasing) {
+                thicknessIndicator.textContent = `Épaisseur de la gomme : ${eraserSize}`;
+            } else {
+                thicknessIndicator.textContent = `Épaisseur du pinceau : ${ctx.lineWidth}`;
+            }
+        }
+
+        document.getElementById('increase-thickness').addEventListener('click', () => {
+            if (erasing) {
+                eraserSize += 5; // Augmente la taille de la gomme
+            } else {
+                ctx.lineWidth += 1; // Augmente l'épaisseur du pinceau
+            }
+            updateThicknessIndicator(); // Mettez à jour l'indicateur
+        });
+
+        document.getElementById('decrease-thickness').addEventListener('click', () => {
+            if (erasing) {
+                if (eraserSize > 5) {
+                    eraserSize -= 5; // Diminue la taille de la gomme
+                }
+            } else {
+                if (ctx.lineWidth > 1) {
+                    ctx.lineWidth -= 1; // Diminue l'épaisseur du pinceau
+                }
+            }
+            updateThicknessIndicator(); // Mettez à jour l'indicateur
+        });
+
+        const generateSignature = () => {
+            const models = [
+                `${prenom.charAt(0)}. ${nom}`,
+                `${prenom} ${nom.charAt(0)}.`,
+                `${nom} ${prenom.charAt(0)}.`,
+                `${prenom.charAt(0)}${nom.charAt(0)}`
+            ];
+            const randomModel = models[Math.floor(Math.random() * models.length)];
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.font = '48px cursive';
+            ctx.fillText(randomModel, 50, 100);
+        };
+
+        canvas.addEventListener('mousedown', (e) => {
+            drawing = true;
+            ctx.beginPath();
+            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
+        });
+
+        canvas.addEventListener('mousemove', (e) => {
+            cursor.style.left = `${e.pageX - 5}px`;
+            cursor.style.top = `${e.pageY - 5}px`;
+            if (drawing) {
+                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('mouseup', () => {
+            drawing = false;
+        });
+
+        canvas.addEventListener('mouseout', () => {
+            drawing = false;
+        });
+
+        document.getElementById('clear-button').addEventListener('click', () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        });
+
+        document.getElementById('save-button').addEventListener('click', () => {
+            const format = document.getElementById('format-picker').value;
+            const filename = document.getElementById('filename').value || 'signature';
+            const dataURL = canvas.toDataURL(`image/${format}`);
+            const link = document.createElement('a');
+            link.href = dataURL;
+            link.download = `${filename}.${format}`;
+            link.click();
+        });
+
+        document.getElementById('increase-thickness').addEventListener('click', () => {
+            ctx.lineWidth += 1;
+        });
+
+        document.getElementById('decrease-thickness').addEventListener('click', () => {
+            if (ctx.lineWidth > 1) {
+                ctx.lineWidth -= 1;
+            }
+        });
+
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            ctx.strokeStyle = e.target.value;
+        });
+
+        document.getElementById('style-picker').addEventListener('change', (e) => {
+            currentStyle = e.target.value;
+            updateStyle();
+        });
+
+        document.getElementById('download-button').addEventListener('click', () => {
+            const format = document.getElementById('format-picker').value;
+            const dataURL = canvas.toDataURL(`image/${format}`);
+            const link = document.createElement('a');
+            const filename = document.getElementById('filename').value || 'signature';
+            link.href = dataURL;
+            link.download = `${filename}.${format}`;
+            link.click();
+        });
+
+        document.getElementById('generate-button').addEventListener('click', () => {
+            nom = prompt("Entrez votre nom:");
+            prenom = prompt("Entrez votre prénom:");
+            if (nom && prenom) {
+                generateSignature();
+            }
+        });
+
+        document.getElementById('another-model-button').addEventListener('click', () => {
+            if (nom && prenom) {
+                generateSignature();
+            } else {
+                alert("Veuillez d'abord générer une signature.");
+            }
+        });
+
+        function updateStyle() {
+            switch (currentStyle) {
+                case 'bold':
+                    ctx.font = 'bold 48px cursive';
+                    break;
+                case 'italic':
+                    ctx.font = 'italic 48px cursive';
+                    break;
+                case 'bold italic':
+                    ctx.font = 'bold italic 48px cursive';
+                    break;
+                default:
+                    ctx.font = '48px cursive';
+                    break;
+            }
+        }
+    </script>
+</body>
+</html>
