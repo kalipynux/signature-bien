@@ -115,130 +115,63 @@
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script>
         const canvas = document.getElementById('signature-pad');
-        const ctx = canvas.getContext('2d');
-        ctx.lineWidth = 5; // Épaisseur de la ligne
-        ctx.strokeStyle = '#000000'; // Couleur de la ligne (noir)
-        const cursor = document.getElementById('cursor');
-        let drawing = false;
-        let nom = '';
-        let prenom = '';
-        let currentStyle = 'normal';
-        let erasing = false;
-        let eraserSize = 10;
-
-        canvas.addEventListener('touchstart', (e) => {
-            drawing = true;
-            e.preventDefault();
-            const touch = e.touches[0];
-            ctx.beginPath();
-            ctx.moveTo(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
+        const signaturePad = new SignaturePad(canvas, {
+            backgroundColor: 'rgba(255, 255, 255, 1)',
+            penColor: 'rgb(0, 0, 0)'
         });
 
-        canvas.addEventListener('touchmove', (e) => {
-            if (drawing) {
-                e.preventDefault();
-                const touch = e.touches[0];
-                ctx.lineTo(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
-                ctx.stroke();
-            }
+        function resizeCanvas() {
+            const ratio = Math.max(window.devicePixelRatio || 1, 1);
+            canvas.width = canvas.offsetWidth * ratio;
+            canvas.height = canvas.offsetHeight * ratio;
+            canvas.getContext('2d').scale(ratio, ratio);
+            signaturePad.clear();
+        }
+
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        document.getElementById('clear-button').addEventListener('click', () => {
+            signaturePad.clear();
         });
 
-        canvas.addEventListener('touchend', (e) => {
-            drawing = false;
-            e.preventDefault();
-        });
-
-        document.getElementById('eraser-button').addEventListener('click', () => {
-            erasing = !erasing; // Bascule entre gomme et pinceau
-            if (erasing) {
-                ctx.globalCompositeOperation = 'destination-out'; // Mode gomme
-                ctx.lineWidth = eraserSize; // Applique la taille de la gomme
-                document.getElementById('eraser-button').textContent = 'Désactiver la gomme';
+        document.getElementById('save-button').addEventListener('click', () => {
+            if (signaturePad.isEmpty()) {
+                alert("Veuillez fournir une signature d'abord.");
             } else {
-                ctx.globalCompositeOperation = 'source-over'; // Mode dessin
-                ctx.lineWidth = 5; // Réinitialise à l'épaisseur par défaut
-                document.getElementById('eraser-button').textContent = 'Activer la gomme';
+                const format = document.getElementById('format-picker').value;
+                const filename = document.getElementById('filename').value || 'signature';
+                const dataURL = signaturePad.toDataURL(`image/${format}`);
+                const link = document.createElement('a');
+                link.href = dataURL;
+                link.download = `${filename}.${format}`;
+                link.click();
             }
-            updateThicknessIndicator(); // Mettez à jour l'indicateur
+        });
+
+        document.getElementById('color-picker').addEventListener('input', (e) => {
+            signaturePad.penColor = e.target.value;
         });
 
         const thicknessIndicator = document.getElementById('thickness-indicator');
 
-        function updateThicknessIndicator() {
-            if (erasing) {
-                thicknessIndicator.textContent = `Épaisseur de la gomme : ${eraserSize}`;
-            } else {
-                thicknessIndicator.textContent = `Épaisseur du pinceau : ${ctx.lineWidth}`;
-            }
-        }
-
         document.getElementById('increase-thickness').addEventListener('click', () => {
-            if (erasing) {
-                eraserSize += 5; // Augmente la taille de la gomme
-            } else {
-                ctx.lineWidth += 1; // Augmente l'épaisseur du pinceau
-            }
-            updateThicknessIndicator(); // Mettez à jour l'indicateur
+            signaturePad.minWidth += 0.5;
+            signaturePad.maxWidth += 0.5;
+            updateThicknessIndicator();
         });
 
         document.getElementById('decrease-thickness').addEventListener('click', () => {
-            if (erasing) {
-                if (eraserSize > 5) {
-                    eraserSize -= 5; // Diminue la taille de la gomme
-                }
-            } else {
-                if (ctx.lineWidth > 1) {
-                    ctx.lineWidth -= 1; // Diminue l'épaisseur du pinceau
-                }
+            if (signaturePad.minWidth > 0.5) {
+                signaturePad.minWidth -= 0.5;
+                signaturePad.maxWidth -= 0.5;
+                updateThicknessIndicator();
             }
-            updateThicknessIndicator(); // Mettez à jour l'indicateur
         });
 
-        const generateSignature = () => {
-            const models = [
-                `${prenom.charAt(0)}. ${nom}`,
-                `${prenom} ${nom.charAt(0)}.`,
-                `${nom} ${prenom.charAt(0)}.`,
-                `${prenom.charAt(0)}${nom.charAt(0)}`
-            ];
-            const randomModel = models[Math.floor(Math.random() * models.length)];
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            ctx.font = '48px cursive';
-            ctx.fillText(randomModel, 50, 100);
-        };
-
-        document.getElementById('clear-button').addEventListener('click', () => {
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-        });
-
-        document.getElementById('save-button').addEventListener('click', () => {
-            const format = document.getElementById('format-picker').value;
-            const filename = document.getElementById('filename').value || 'signature';
-            const dataURL = canvas.toDataURL(`image/${format}`);
-            const link = document.createElement('a');
-            link.href = dataURL;
-            link.download = `${filename}.${format}`;
-            link.click();
-        });
-
-        document.getElementById('color-picker').addEventListener('input', (e) => {
-            ctx.strokeStyle = e.target.value;
-        });
-
-        document.getElementById('style-picker').addEventListener('change', (e) => {
-            currentStyle = e.target.value;
-            updateStyle();
-        });
-
-        document.getElementById('download-button').addEventListener('click', () => {
-            const format = document.getElementById('format-picker').value;
-            const dataURL = canvas.toDataURL(`image/${format}`);
-            const link = document.createElement('a');
-            const filename = document.getElementById('filename').value || 'signature';
-            link.href = dataURL;
-            link.download = `${filename}.${format}`;
-            link.click();
-        });
+        function updateThicknessIndicator() {
+            thicknessIndicator.textContent = `Épaisseur : ${signaturePad.minWidth}`;
+        }
 
         document.getElementById('generate-button').addEventListener('click', () => {
             nom = prompt("Entrez votre nom:");
@@ -256,21 +189,18 @@
             }
         });
 
-        function updateStyle() {
-            switch (currentStyle) {
-                case 'bold':
-                    ctx.font = 'bold 48px cursive';
-                    break;
-                case 'italic':
-                    ctx.font = 'italic 48px cursive';
-                    break;
-                case 'bold italic':
-                    ctx.font = 'bold italic 48px cursive';
-                    break;
-                default:
-                    ctx.font = '48px cursive';
-                    break;
-            }
+        function generateSignature() {
+            const models = [
+                `${prenom.charAt(0)}. ${nom}`,
+                `${prenom} ${nom.charAt(0)}.`,
+                `${nom} ${prenom.charAt(0)}.`,
+                `${prenom.charAt(0)}${nom.charAt(0)}`
+            ];
+            const randomModel = models[Math.floor(Math.random() * models.length)];
+            signaturePad.clear();
+            const ctx = canvas.getContext('2d');
+            ctx.font = '48px cursive';
+            ctx.fillText(randomModel, 50, 100);
         }
     </script>
 </body>
