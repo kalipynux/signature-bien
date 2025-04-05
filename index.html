@@ -14,20 +14,29 @@
             background-color: #f0f0f0;
             margin: 0;
             height: 100vh;
+            overflow: hidden; /* Empêche le défilement */
         }
         h2 {
             margin-bottom: 20px;
+            text-align: center;
         }
         .container {
             display: flex;
-            align-items: flex-start;
+            flex-direction: column;
+            align-items: center;
             justify-content: center;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+            box-sizing: border-box;
         }
         .signature-pad {
             border: 2px solid #000;
             background-color: #fff;
-            width: 800px; /* Taille d'affichage */
-            height: 400px; /* Taille d'affichage */
+            width: 100%;
+            max-width: 800px;
+            height: 50vh;
+            max-height: 400px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         #cursor {
@@ -41,7 +50,8 @@
         .controls {
             display: flex;
             flex-direction: column;
-            margin-left: 20px;
+            align-items: center;
+            margin-top: 20px;
         }
         .controls input, .controls button, .controls select {
             margin: 5px;
@@ -50,6 +60,8 @@
             border: none;
             border-radius: 5px;
             cursor: pointer;
+            width: 80%;
+            max-width: 300px;
         }
         .controls input {
             border: 1px solid #ccc;
@@ -64,35 +76,41 @@
         .controls select {
             border: 1px solid #ccc;
         }
+        .controls span {
+            margin-top: 10px;
+            font-size: 18px;
+        }
     </style>
 </head>
 <body>
     <h2>BIEN Signature</h2>
-    <canvas id="signature-pad" class="signature-pad" width="1600" height="800"></canvas> <!-- Taille réelle -->
-    <div id="cursor"></div>
-    <div class="controls">
-        <input type="text" id="filename" placeholder="Nom du fichier">
-        <input type="color" id="color-picker" value="#000000" title="Couleur" name="color">
-        <select id="style-picker">
-            <option value="normal">Normal</option>
-            <option value="bold">Bold</option>
-            <option value="italic">Italic</option>
-            <option value="bold italic">Bold Italic</option>
-        </select>
-        <select id="format-picker">
-            <option value="png">PNG</option>
-            <option value="jpeg">JPEG</option>
-            <option value="bmp">BMP</option>
-        </select>
-        <button id="clear-button">Effacer</button>
-        <button id="eraser-button">Activer la gomme</button>
-        <button id="save-button">Enregistrer</button>
-        <button id="increase-thickness">Augmenter l'épaisseur</button>
-        <button id="decrease-thickness">Diminuer l'épaisseur</button>
-        <button id="download-button">Télécharger la signature</button>
-        <button id="generate-button">Générer</button>
-        <button id="another-model-button">Voir un autre modèle</button>
-        <span id="thickness-indicator">Épaisseur : 5</span>
+    <div class="container">
+        <canvas id="signature-pad" class="signature-pad" width="1600" height="800"></canvas> <!-- Taille réelle -->
+        <div id="cursor"></div>
+        <div class="controls">
+            <input type="text" id="filename" placeholder="Nom du fichier">
+            <input type="color" id="color-picker" value="#000000" title="Couleur" name="color">
+            <select id="style-picker">
+                <option value="normal">Normal</option>
+                <option value="bold">Bold</option>
+                <option value="italic">Italic</option>
+                <option value="bold italic">Bold Italic</option>
+            </select>
+            <select id="format-picker">
+                <option value="png">PNG</option>
+                <option value="jpeg">JPEG</option>
+                <option value="bmp">BMP</option>
+            </select>
+            <button id="clear-button">Effacer</button>
+            <button id="eraser-button">Activer la gomme</button>
+            <button id="save-button">Enregistrer</button>
+            <button id="increase-thickness">Augmenter l'épaisseur</button>
+            <button id="decrease-thickness">Diminuer l'épaisseur</button>
+            <button id="download-button">Télécharger la signature</button>
+            <button id="generate-button">Générer</button>
+            <button id="another-model-button">Voir un autre modèle</button>
+            <span id="thickness-indicator">Épaisseur : 5</span>
+        </div>
     </div>
     <script src="https://cdn.jsdelivr.net/npm/signature_pad@4.0.0/dist/signature_pad.umd.min.js"></script>
     <script>
