@@ -108,6 +108,28 @@
         let erasing = false;
         let eraserSize = 10;
 
+        canvas.addEventListener('touchstart', (e) => {
+            drawing = true;
+            e.preventDefault();
+            const touch = e.touches[0];
+            ctx.beginPath();
+            ctx.moveTo(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
+        });
+
+        canvas.addEventListener('touchmove', (e) => {
+            if (drawing) {
+                e.preventDefault();
+                const touch = e.touches[0];
+                ctx.lineTo(touch.pageX - canvas.offsetLeft, touch.pageY - canvas.offsetTop);
+                ctx.stroke();
+            }
+        });
+
+        canvas.addEventListener('touchend', (e) => {
+            drawing = false;
+            e.preventDefault();
+        });
+
         document.getElementById('eraser-button').addEventListener('click', () => {
             erasing = !erasing; // Bascule entre gomme et pinceau
             if (erasing) {
@@ -120,25 +142,6 @@
                 document.getElementById('eraser-button').textContent = 'Activer la gomme';
             }
             updateThicknessIndicator(); // Mettez à jour l'indicateur
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            cursor.style.left = `${e.pageX - 5}px`;
-            cursor.style.top = `${e.pageY - 5}px`;
-            if (drawing) {
-                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Adjust for actual size
-                ctx.stroke();
-            }
-        });
-
-        canvas.addEventListener('mousedown', (e) => {
-            drawing = true;
-            ctx.beginPath();
-            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            drawing = false;
         });
 
         const thicknessIndicator = document.getElementById('thickness-indicator');
@@ -186,29 +189,6 @@
             ctx.fillText(randomModel, 50, 100);
         };
 
-        canvas.addEventListener('mousedown', (e) => {
-            drawing = true;
-            ctx.beginPath();
-            ctx.moveTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
-        });
-
-        canvas.addEventListener('mousemove', (e) => {
-            cursor.style.left = `${e.pageX - 5}px`;
-            cursor.style.top = `${e.pageY - 5}px`;
-            if (drawing) {
-                ctx.lineTo(e.offsetX * 2, e.offsetY * 2); // Ajustement pour la taille réelle
-                ctx.stroke();
-            }
-        });
-
-        canvas.addEventListener('mouseup', () => {
-            drawing = false;
-        });
-
-        canvas.addEventListener('mouseout', () => {
-            drawing = false;
-        });
-
         document.getElementById('clear-button').addEventListener('click', () => {
             ctx.clearRect(0, 0, canvas.width, canvas.height);
         });
@@ -221,16 +201,6 @@
             link.href = dataURL;
             link.download = `${filename}.${format}`;
             link.click();
-        });
-
-        document.getElementById('increase-thickness').addEventListener('click', () => {
-            ctx.lineWidth += 1;
-        });
-
-        document.getElementById('decrease-thickness').addEventListener('click', () => {
-            if (ctx.lineWidth > 1) {
-                ctx.lineWidth -= 1;
-            }
         });
 
         document.getElementById('color-picker').addEventListener('input', (e) => {
