@@ -26,7 +26,7 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            width: 100%;
+            width: 95%;
             max-width: 1200px;
             padding: 20px;
             box-sizing: border-box;
@@ -121,8 +121,9 @@
 
         function resizeCanvas() {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.parentElement.clientWidth * ratio;
-            canvas.height = canvas.parentElement.clientHeight * ratio;
+            const container = document.querySelector('.container');
+            canvas.width = container.clientWidth * ratio;
+            canvas.height = container.clientHeight * ratio;
             canvas.getContext('2d').scale(ratio, ratio);
             signaturePad.clear();
         }
