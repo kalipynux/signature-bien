@@ -174,22 +174,24 @@
         }
 
         document.getElementById('generate-button').addEventListener('click', () => {
-            nom = prompt("Entrez votre nom:");
-            prenom = prompt("Entrez votre prénom:");
+            const nom = prompt("Entrez votre nom:");
+            const prenom = prompt("Entrez votre prénom:");
             if (nom && prenom) {
-                generateSignature();
+                generateSignature(nom, prenom);
             }
         });
 
         document.getElementById('another-model-button').addEventListener('click', () => {
+            const nom = prompt("Entrez votre nom:");
+            const prenom = prompt("Entrez votre prénom:");
             if (nom && prenom) {
-                generateSignature();
+                generateSignature(nom, prenom);
             } else {
                 alert("Veuillez d'abord générer une signature.");
             }
         });
 
-        function generateSignature() {
+        function generateSignature(nom, prenom) {
             const models = [
                 `${prenom.charAt(0)}. ${nom}`,
                 `${prenom} ${nom.charAt(0)}.`,
