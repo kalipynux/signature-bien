@@ -19,6 +19,7 @@
         h2 {
             margin-bottom: 20px;
             text-align: center;
+            font-size: 2em;
         }
         .container {
             display: flex;
@@ -34,9 +35,7 @@
             border: 2px solid #000;
             background-color: #fff;
             width: 100%;
-            max-width: 800px;
-            height: 50vh;
-            max-height: 400px;
+            height: 60vh;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
         }
         #cursor {
@@ -85,7 +84,7 @@
 <body>
     <h2>BIEN Signature</h2>
     <div class="container">
-        <canvas id="signature-pad" class="signature-pad" width="1600" height="800"></canvas> <!-- Taille réelle -->
+        <canvas id="signature-pad" class="signature-pad"></canvas>
         <div id="cursor"></div>
         <div class="controls">
             <input type="text" id="filename" placeholder="Nom du fichier">
@@ -122,8 +121,8 @@
 
         function resizeCanvas() {
             const ratio = Math.max(window.devicePixelRatio || 1, 1);
-            canvas.width = canvas.offsetWidth * ratio;
-            canvas.height = canvas.offsetHeight * ratio;
+            canvas.width = canvas.parentElement.clientWidth * ratio;
+            canvas.height = canvas.parentElement.clientHeight * ratio;
             canvas.getContext('2d').scale(ratio, ratio);
             signaturePad.clear();
         }
